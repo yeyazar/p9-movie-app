@@ -9,7 +9,7 @@ const Navbar = () => {
       >
         <div className="flex w-full flex-wrap items-center justify-between px-6">
           <a className="pr-2 text-xl font-semibold text-white" href="#">
-            Navbar
+            React Movie App
           </a>
 
           {/* Collapsible wrapper */}
