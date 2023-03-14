@@ -6,6 +6,10 @@ import {
 import { createContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../auth/firebase";
+import {
+  toastSuccessNotify,
+  toastErrorNotify,
+} from "../helpers/ToastNotify.jsx";
 
 //export const {Provider} = createContext()
 export const AuthContext = createContext();
@@ -17,6 +21,10 @@ export const AuthContext = createContext();
 const AuthContextProvider = ({ children }) => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    userObserver();
+  }, []);
+
   const createUser = async (email, password) => {
     try {
       //? firebase method to create a new User
@@ -25,9 +33,11 @@ const AuthContextProvider = ({ children }) => {
         email,
         password
       );
+      navigate("/");
+      toastSuccessNotify("Registered successfully");
       console.log(userCredential);
     } catch (error) {
-      console.log(error);
+      toastErrorNotify(error);
     }
   };
 
@@ -35,13 +45,24 @@ const AuthContextProvider = ({ children }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/");
+      toastSuccessNotify("Logged in successfully");
     } catch (error) {
-      console.log(error);
+      toastErrorNotify(error);
     }
   };
 
   const logOut = () => {
     signOut(auth);
+  };
+
+  const userObserver = () => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log(user);
+      } else {
+        console.log("logged out");
+      }
+    });
   };
 
   const values = {
