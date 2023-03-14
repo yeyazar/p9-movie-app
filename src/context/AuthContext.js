@@ -1,9 +1,13 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
+  updateProfile,
 } from "firebase/auth";
-import { createContext } from "react";
+import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../auth/firebase";
 import {
@@ -19,13 +23,14 @@ export const AuthContext = createContext();
 // };
 
 const AuthContextProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     userObserver();
   }, []);
 
-  const createUser = async (email, password) => {
+  const createUser = async (email, password, displayName) => {
     try {
       //? firebase method to create a new User
       let userCredential = await createUserWithEmailAndPassword(
@@ -33,11 +38,11 @@ const AuthContextProvider = ({ children }) => {
         email,
         password
       );
+      await updateProfile(auth.currentUser, { displayName: displayName });
       navigate("/");
       toastSuccessNotify("Registered successfully");
-      console.log(userCredential);
     } catch (error) {
-      toastErrorNotify(error);
+      toastErrorNotify(error.message);
     }
   };
 
@@ -47,7 +52,7 @@ const AuthContextProvider = ({ children }) => {
       navigate("/");
       toastSuccessNotify("Logged in successfully");
     } catch (error) {
-      toastErrorNotify(error);
+      toastErrorNotify(error.message);
     }
   };
 
@@ -56,20 +61,37 @@ const AuthContextProvider = ({ children }) => {
   };
 
   const userObserver = () => {
+    //? A firebase method that follows if the user is signed in or not, and responds on changes
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log(user);
+        const { email, displayName, photoURL } = user;
+        setCurrentUser({ email, displayName, photoURL });
       } else {
-        console.log("logged out");
+        setCurrentUser(false);
+        //console.log("logged out");
       }
     });
+  };
+
+  const signUpProvider = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        console.log(result);
+        navigate("/");
+        toastSuccessNotify("Logged in Successfully");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const values = {
     createUser,
     signIn,
     logOut,
-    currentUser: { displayName: "Vega Xagev" },
+    signUpProvider,
+    currentUser,
   };
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;

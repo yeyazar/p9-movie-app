@@ -7,11 +7,12 @@ const Register = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { createUser } = useContext(AuthContext);
+  const { createUser, signUpProvider } = useContext(AuthContext);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    createUser(email, password);
+    const displayName = `${firstName} ${lastName}`;
+    createUser(email, password, displayName);
   };
 
   return (
@@ -71,6 +72,7 @@ const Register = () => {
           <button
             className="flex justify-between text-center btn-danger"
             type="button"
+            onClick={() => signUpProvider()}
           >
             Continue with Google
             <GoogleIcon color="currentColor" />
